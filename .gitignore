@@ -1,0 +1,45 @@
+# ROS2 colcon build artifacts
+build/
+install/
+log/
+
+# Python cache and artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.eggs/
+*.whl
+
+# MacOS-specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.metadata_never_index
+
+# VSCode settings
+.vscode/
+
+# Python virtual environments
+venv/
+.venv/
+.env/
+
+# ROS2 launch backups
+*.launch.py~
+*.launch.log
+
+# Compiled objects and temp files
+*.so
+*.swp
+*~
+
+# System-generated backup files
+*.bak
+*.tmp
