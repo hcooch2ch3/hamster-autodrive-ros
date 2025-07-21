@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'hamster_driver_node = hamster_bringup.hamster_driver_node:main',
         ],
     },
 )
