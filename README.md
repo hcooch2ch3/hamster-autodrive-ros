@@ -155,11 +155,17 @@ ros2 run rqt_image_view rqt_image_view
 
 ## 개발 참여
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+이 프로젝트에 참여하기 전에 [CONTRIBUTING.md](CONTRIBUTING.md)를 참고해주세요.
+
+### 빠른 시작
+
+1. 저장소를 포크합니다
+2. 기능 브랜치를 생성합니다 (`git checkout -b feature/새로운-기능`)
+3. 변경사항을 커밋합니다 (`git commit -m 'feat(camera): 새로운 기능 추가'`)
+4. 브랜치에 푸시합니다 (`git push origin feature/새로운-기능`)
+5. 풀 리퀘스트를 생성합니다
+
+더 자세한 개발 환경 설정, 코딩 스타일, 커밋 규칙 등은 **[참여 가이드](CONTRIBUTING.md)**에서 확인하실 수 있습니다.
 
 ## 라이선스
 
