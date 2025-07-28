@@ -50,7 +50,7 @@ def generate_launch_description():
             launch_arguments={
                 'enable_object_following': LaunchConfiguration('enable_object_following')
             }.items(),
-            condition=LaunchConfiguration('enable_camera')
+            condition=IfCondition(LaunchConfiguration('enable_camera'))
         ),
         
         # Teleop Node (conditional)
@@ -59,6 +59,6 @@ def generate_launch_description():
             executable='teleop_node',
             name='hamster_teleop',
             output='screen',
-            condition=LaunchConfiguration('enable_teleop')
+            condition=IfCondition(LaunchConfiguration('enable_teleop'))
         ),
     ])
