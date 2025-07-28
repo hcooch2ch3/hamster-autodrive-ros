@@ -18,7 +18,15 @@ class HamsterCameraNode(Node):
         self.bridge = CvBridge()
         
         # 카메라 스트림 URL 및 GStreamer 파이프라인
-        self.camera_url = "http://192.168.66.1:9527/videostream.cgi?loginuse=admin&loginpas=admin"
+        self.declare_parameter('camera_base_url', 'http://192.168.66.1:9527/videostream.cgi')
+        self.declare_parameter('camera_username', 'admin')
+        self.declare_parameter('camera_password', 'admin')
+        
+        camera_base_url = self.get_parameter('camera_base_url').get_parameter_value().string_value
+        camera_username = self.get_parameter('camera_username').get_parameter_value().string_value
+        camera_password = self.get_parameter('camera_password').get_parameter_value().string_value
+        
+        self.camera_url = f"{camera_base_url}?loginuse={camera_username}&loginpas={camera_password}"
         self.gstreamer_pipeline = f"souphttpsrc location={self.camera_url} ! multipartdemux ! jpegdec ! videoconvert ! appsink"
         
         # OpenCV VideoCapture 초기화 (GStreamer 파이프라인 우선 시도)
