@@ -47,7 +47,7 @@ self.declare_parameter('camera_username', 'admin')
 username = self.get_parameter('camera_username').value
 
 # Bad: Hardcoded
-self.camera_url = "http://192.168.1.1/stream?user=admin&pass=secret"
+self.camera_url = "http://192.168.1.1/stream?user=USERNAME&pass=PASSWORD"
 ```
 
 ## Python-specific (for ROS 2)
