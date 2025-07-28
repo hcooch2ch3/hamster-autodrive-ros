@@ -3,11 +3,13 @@
 <package format="3">
   <name>hamster_teleop</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Hamster robot teleoperation package for keyboard remote control</description>
   <maintainer email="hcooch2ch3@gmail.com">sm</maintainer>
   <license>MIT</license>
 
-  <exec_depend>geometry_msgs</exec_depend>
+  <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
