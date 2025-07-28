@@ -12,8 +12,9 @@
 
 ## 주요 기능
 
-- **차선 유지 (Lane Keeping)**: 카메라를 이용한 차선 검출 및 추종
-- **장애물 회피 (Obstacle Avoidance)**: LiDAR/초음파 센서를 활용한 장애물 감지 및 회피
+- **카메라 비전**: 실시간 이미지 처리 및 객체 검출
+- **원격 제어**: 키보드 기반 로봇 원격 조종
+- **하드웨어 드라이버**: 햄스터 로봇 기본 제어 인터페이스
 
 ## 시스템 요구사항
 
@@ -65,59 +66,92 @@ source install/setup.bash
 
 ## 사용 방법
 
-### 1. 시뮬레이션 실행
+### 1. 통합 시스템 실행 
 
 ```bash
-# Gazebo 시뮬레이션 환경 실행
-ros2 launch hamster_autodrive simulation.launch.py
+# 전체 시스템 (드라이버 + 카메라 + 원격제어)
+ros2 launch hamster_bringup hamster.launch.py enable_camera:=true enable_teleop:=true
 
-# 자율주행 모드 실행
-ros2 launch hamster_autodrive autodrive.launch.py
+# 드라이버 + 카메라만
+ros2 launch hamster_bringup hamster.launch.py enable_camera:=true
+
+# 드라이버 + 원격제어만
+ros2 launch hamster_bringup hamster.launch.py enable_teleop:=true
+
+# 자동 객체 추적 모드
+ros2 launch hamster_bringup hamster.launch.py enable_camera:=true enable_object_following:=true
+
+# 드라이버만 (기본값)
+ros2 launch hamster_bringup hamster.launch.py
 ```
 
-### 2. 실제 로봇 실행
+### 2. 개별 노드 실행
 
 ```bash
-# 로봇 하드웨어 드라이버 실행
-ros2 launch hamster_autodrive robot.launch.py
+# 햄스터 드라이버만
+ros2 run hamster_bringup hamster_driver_node
 
-# 자율주행 시작
-ros2 run hamster_autodrive autodrive_node
+# 카메라 노드만
+ros2 run hamster_camera camera_node
+
+# 원격 제어만
+ros2 run hamster_teleop teleop_node
 ```
 
-### 3. 원격 제어
+### 3. 개별 런치 파일
 
 ```bash
-# 키보드 원격 제어
-ros2 run hamster_autodrive teleop_keyboard
+# 카메라만 실행
+ros2 launch hamster_camera camera.launch.py
 
-# 게임패드 제어
-ros2 run hamster_autodrive teleop_gamepad
+# 객체 추적 기능 포함 카메라
+ros2 launch hamster_camera camera.launch.py enable_object_following:=true
 ```
 
 ## 패키지 구조
 
 ```
 src/
-├── hamster_autodrive/          # 메인 자율주행 패키지
-├── hamster_description/        # 로봇 URDF 모델
-├── hamster_gazebo/            # Gazebo 시뮬레이션
-├── hamster_navigation/        # 내비게이션 스택
-└── hamster_perception/        # 센서 데이터 처리
+├── hamster_bringup/           # 햄스터 로봇 기본 드라이버
+├── hamster_camera/            # 카메라 비전 처리
+└── hamster_teleop/            # 원격 제어
 ```
+
+### 패키지 설명
+
+- **hamster_bringup**: 햄스터 로봇의 기본 하드웨어 드라이버와 센서 인터페이스
+- **hamster_camera**: IP 카메라 연결, 이미지 처리, 객체 검출 기능
+- **hamster_teleop**: 키보드를 이용한 원격 조종 기능
 
 ## 설정
 
-### 카메라 캘리브레이션
+### 카메라 설정
 
-```bash
-# 카메라 캘리브레이션 실행
-ros2 run hamster_perception camera_calibration
+카메라 IP 주소 및 스트림 설정은 `hamster_camera/camera_node.py`에서 수정할 수 있습니다.
+
+```python
+self.camera_url = "http://192.168.66.1:9527/videostream.cgi?loginuse=admin&loginpas=admin"
 ```
 
-### 센서 설정
+이미지 확인 방법
+```bash
+# RQT로 이미지 확인
+ros2 run rqt_image_view rqt_image_view
 
-센서 파라미터는 `config/` 디렉토리의 YAML 파일에서 수정할 수 있습니다.
+# 또는 토픽 목록 확인
+ros2 topic list
+ros2 topic echo /camera/image_raw
+```
+
+### 토픽 확인
+
+```bash
+# 카메라 이미지 토픽 확인
+ros2 topic list | grep camera
+
+# 이미지 스트림 확인
+ros2 run rqt_image_view rqt_image_view
+```
 
 ## 개발 참여
 
