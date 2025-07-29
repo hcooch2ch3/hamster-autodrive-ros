@@ -10,9 +10,11 @@ import tty
 
 class TeleopNode(Node):
     def __init__(self):
-        super().__init__('teleop_node')
-        self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
-        self.get_logger().info("Teleop Node Started. Use WASD keys to move. (Q to quit)")
+        super().__init__("teleop_node")
+        self.publisher_ = self.create_publisher(Twist, "/cmd_vel", 10)
+        self.get_logger().info(
+            "Teleop Node Started. Use WASD keys to move. (Q to quit)"
+        )
 
         # 속도 설정
         self.linear_speed = 0.2
@@ -27,18 +29,18 @@ class TeleopNode(Node):
         try:
             while True:
                 key = sys.stdin.read(1)
-                if key == 'q':
+                if key == "q":
                     break
 
                 twist = Twist()
 
-                if key == 'w':
+                if key == "w":
                     twist.linear.x = self.linear_speed
-                elif key == 's':
+                elif key == "s":
                     twist.linear.x = -self.linear_speed
-                elif key == 'a':
+                elif key == "a":
                     twist.angular.z = self.angular_speed
-                elif key == 'd':
+                elif key == "d":
                     twist.angular.z = -self.angular_speed
 
                 self.publisher_.publish(twist)
@@ -53,5 +55,5 @@ def main(args=None):
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
