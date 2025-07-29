@@ -39,13 +39,13 @@ jobs:
       - name: Install Python linting tools
         run: |
           python3 -m pip install -U pip
-          pip install black flake8
+          python3 -m pip install black flake8
 
       - name: Check formatting (black)
-        run: black --check src/**/*.py
+        run: python3 -m black --check src/**/*.py
 
       - name: Lint check (flake8)
-        run: flake8 src/
+        run: python3 -m flake8 src/
 
       - name: Build workspace
         run: |
