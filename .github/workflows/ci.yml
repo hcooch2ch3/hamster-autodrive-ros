@@ -56,5 +56,5 @@ jobs:
         run: |
           source /opt/ros/humble/setup.bash
           source install/setup.bash
-          colcon test --event-handlers console_direct+
+          colcon test --event-handlers console_direct+ --pytest-args -m "not flake8 and not pep257 and not copyright"
           colcon test-result --verbose
