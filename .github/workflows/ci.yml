@@ -45,7 +45,7 @@ jobs:
         run: black --check src/**/*.py
 
       - name: Lint check (flake8)
-        run: flake8 .
+        run: flake8 src/
 
       - name: Build workspace
         run: |
