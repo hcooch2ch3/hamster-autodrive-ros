@@ -1,0 +1,60 @@
+name: ROS2 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up ROS 2 Humble
+        uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: humble
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-rosdep python3-colcon-common-extensions
+
+      - name: Initialize rosdep
+        run: |
+          if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+            sudo rosdep init
+          fi
+          rosdep update
+
+      - name: Install dependencies
+        run: |
+          source /opt/ros/humble/setup.bash
+          rosdep install --from-paths src --ignore-src -r -y
+
+      - name: Install Python linting tools
+        run: |
+          python3 -m pip install -U pip
+          python3 -m pip install black flake8
+
+      - name: Check formatting (black)
+        run: python3 -m black --check src/**/*.py
+
+      - name: Lint check (flake8)
+        run: python3 -m flake8 src/
+
+      - name: Build workspace
+        run: |
+          source /opt/ros/humble/setup.bash
+          colcon build --event-handlers console_direct+ --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+      - name: Run tests
+        run: |
+          source /opt/ros/humble/setup.bash
+          source install/setup.bash
+          colcon test --event-handlers console_direct+ --pytest-args -m "not flake8 and not pep257 and not copyright"
+          colcon test-result --verbose
