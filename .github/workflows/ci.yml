@@ -17,7 +17,7 @@ jobs:
       - name: Set up ROS 2 Humble
         uses: ros-tooling/setup-ros@v0.7
         with:
-          distribution: humble
+          required-ros-distributions: humble
 
       - name: Install system dependencies
         run: |
