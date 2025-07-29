@@ -37,7 +37,10 @@ class HamsterCameraNode(Node):
         self.camera_url = (
             f"{camera_base_url}?loginuse={camera_username}&loginpas={camera_password}"
         )
-        self.gstreamer_pipeline = f"souphttpsrc location={self.camera_url} ! multipartdemux ! jpegdec ! videoconvert ! appsink"
+        self.gstreamer_pipeline = (
+            f"souphttpsrc location={self.camera_url} ! multipartdemux ! "
+            "jpegdec ! videoconvert ! appsink"
+        )
 
         # OpenCV VideoCapture 초기화 (GStreamer 파이프라인 우선 시도)
         self.cap = self._initialize_camera()
