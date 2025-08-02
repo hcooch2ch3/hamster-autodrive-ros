@@ -1,7 +1,7 @@
 # GitHub Copilot code review instructions for ROS package development
 
 ## General principles
-- Ensure all code and comments are written in **English**.
+- **Code should be written in English**, but **Korean comments are acceptable** for better understanding by Korean developers.
 - Follow the standard **ROS (Robot Operating System)** package structure.
 - Use consistent **2 or 4 space indentation** (match existing project style).
 - **Do not use global variables** unless absolutely necessary. Prefer modular, reusable code.
