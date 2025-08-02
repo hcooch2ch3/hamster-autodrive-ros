@@ -28,6 +28,11 @@ def generate_launch_description():
                 default_value="false",
                 description="Enable automatic object following",
             ),
+            DeclareLaunchArgument(
+                "enable_line_follower",
+                default_value="false",
+                description="Enable camera-based line following",
+            ),
             # Hamster Driver Node (always start)
             Node(
                 package="hamster_bringup",
@@ -63,6 +68,21 @@ def generate_launch_description():
                 name="hamster_teleop",
                 output="screen",
                 condition=IfCondition(LaunchConfiguration("enable_teleop")),
+            ),
+            # Line Follower Node (conditional)
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    [
+                        PathJoinSubstitution(
+                            [
+                                FindPackageShare("hamster_line_follower"),
+                                "launch",
+                                "line_follower.launch.py",
+                            ]
+                        )
+                    ]
+                ),
+                condition=IfCondition(LaunchConfiguration("enable_line_follower")),
             ),
         ]
     )

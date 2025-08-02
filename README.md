@@ -153,6 +153,85 @@ ros2 topic list | grep camera
 ros2 run rqt_image_view rqt_image_view
 ```
 
+## 라인 팔로워 사용법
+
+### 시각화 및 디버깅
+
+라인 팔로워의 검출 결과를 실시간으로 확인할 수 있습니다:
+
+```bash
+# 처리된 이미지 확인 (권장)
+ros2 run rqt_image_view rqt_image_view /line_follower/processed_image
+
+# 원본 카메라 이미지 확인
+ros2 run rqt_image_view rqt_image_view /camera/image_raw
+```
+
+### 시각화 요소 설명
+
+- **🟢 연두색 사각형**: ROI (관심 영역) - 라인을 찾는 구역
+- **🔴 빨간색 선들**: 검출된 라인 세그먼트들
+- **🔵 파란색 원**: 계산된 라인 중심점 (로봇이 따라가는 목표점)
+- **🟡 노란색 세로선**: 이미지 중앙 기준선 (로봇의 진행방향)
+- **노란 숫자**: 각 선분의 각도 (디버깅용)
+
+**정상 작동 상태**: 파란 원이 라인 위에 있고, 노란 선 근처에서 안정적으로 움직임
+
+### 실시간 파라미터 조정
+
+라인 팔로워 실행 중에 파라미터를 실시간으로 조정할 수 있습니다:
+
+```bash
+# 현재 파라미터 확인
+ros2 param list /line_follower
+ros2 param get /line_follower brightness_threshold
+
+# 흰색 선 검출 임계값 조정 (180-220 권장)
+ros2 param set /line_follower brightness_threshold 190
+
+# 최소 선 길이 조정 (작을수록 짧은 점선도 검출)
+ros2 param set /line_follower min_line_length 6
+
+# 점선 간격 허용치 조정 (작을수록 촘촘한 점선 검출)
+ros2 param set /line_follower max_line_gap 12
+
+# ROI 영역 조정 (카메라 각도에 따라)
+ros2 param set /line_follower roi_height_ratio 0.15  # 관심 영역 높이 (0.1-0.4)
+ros2 param set /line_follower roi_y_offset 0.85      # 관심 영역 시작점 (0.6-0.9)
+
+# Canny 엣지 검출 임계값 조정
+ros2 param set /line_follower canny_low 35   # 낮을수록 더 많은 엣지 검출
+ros2 param set /line_follower canny_high 100 # 높을수록 강한 엣지만 검출
+
+# PID 제어 게인 조정
+ros2 param set /line_follower kp 1.0  # 비례 게인 (높을수록 빠른 반응)
+ros2 param set /line_follower kd 0.2  # 미분 게인 (높을수록 안정적)
+```
+
+### GUI를 이용한 파라미터 조정
+
+더 편리한 GUI 환경에서 파라미터를 조정할 수 있습니다:
+
+```bash
+rqt
+# Plugins → Configuration → Parameter Reconfigure 선택
+```
+
+### 일반적인 조정 가이드
+
+**점선이 잘 안 보일 때:**
+- `brightness_threshold` 낮추기 (180 → 160)
+- `min_line_length` 낮추기 (8 → 5)
+- `max_line_gap` 낮추기 (15 → 10)
+
+**너무 많은 노이즈가 검출될 때:**
+- `brightness_threshold` 높이기 (200 → 220)
+- `canny_low` 높이기 (40 → 50)
+
+**카메라가 수평에 가까울 때:**
+- `roi_height_ratio` 작게 (0.15 이하)
+- `roi_y_offset` 크게 (0.85 이상)
+
 ## 개발 참여
 
 이 프로젝트에 참여하기 전에 [CONTRIBUTING.md](CONTRIBUTING.md)를 참고해주세요.
