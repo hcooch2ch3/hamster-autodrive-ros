@@ -3,7 +3,7 @@
 <package format="3">
   <name>hamster_line_follower</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>ROS 2 package for enabling a Hamster robot to follow lines using computer vision techniques.</description>
   <maintainer email="hcooch2ch3@gmail.com">sm</maintainer>
   <license>MIT</license>
 
