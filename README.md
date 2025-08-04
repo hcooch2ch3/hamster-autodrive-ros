@@ -1,6 +1,8 @@
+<img src="media/hamster.jpg" alt="Hamster Robot" width="600">
+
 # Hamster Autodrive ROS
 
-햄스터 로봇을 위한 ROS 2 기반 자율주행 시스템
+햄스터 로봇과 햄스터 AI 카메라를 이용한 ROS 2 기반 자율주행 시스템
 
 ## 개요
 
@@ -21,7 +23,10 @@
 - **OS**: Ubuntu 22.04 LTS
 - **ROS**: ROS 2 Humble Hawksbill
 - **Python**: 3.10+
-- **하드웨어**: 햄스터 로봇, 카메라, 근접 센서, 가속도 센서, 바닥 센서, 조도 센서
+- **하드웨어**: 
+    - [햄스터 S](https://robomation-shop.co.kr/product/detail.html?product_no=679&cate_no=24&display_group=1)
+    - [햄스터 AI 카메라](https://robomation-shop.co.kr/product/detail.html?product_no=1003&cate_no=24&display_group=1)
+- **센서**: 카메라, 근접 센서, 가속도 센서, 바닥 센서, 조도 센서
 
 ## 설치 방법
 
@@ -244,7 +249,7 @@ rqt
 4. 브랜치에 푸시합니다 (`git push origin feature/새로운-기능`)
 5. 풀 리퀘스트를 생성합니다
 
-더 자세한 개발 환경 설정, 코딩 스타일, 커밋 규칙 등은 **[참여 가이드](CONTRIBUTING.md)**에서 확인하실 수 있습니다.
+더 자세한 개발 환경 설정, 코딩 스타일, 커밋 규칙 등은 [기여 가이드](CONTRIBUTING.md)에서 확인하실 수 있습니다.
 
 ## 라이선스
 
