@@ -1,32 +1,40 @@
-<img src="media/hamster.jpg" alt="Hamster Robot" width="600">
-
 # Hamster Autodrive ROS
-
-햄스터 로봇과 햄스터 AI 카메라를 이용한 ROS 2 기반 자율주행 시스템
+<img src="media/HAMSTER.PNG" alt="Hamster Robot" width="100%">
 
 ## 개요
 
-이 프로젝트는 햄스터 로봇에 자율주행 기능을 구현하기 위한 ROS 2 패키지입니다. 차선 유지, 장애물 회피, 등의 기능을 제공합니다.
+이 프로젝트는 햄스터 S 로봇을 이용하여 자율주행 기능을 구현하기 위한 ROS 2 패키지입니다. 차선 유지, 장애물 회피, 등의 기능을 제공합니다.
 
 - **대상:** ROS를 배우고 싶은 학생, 교육자, 로봇 입문자
-- **목표:** 센서 기반의 간단한 자율주행 알고리즘을 햄스터 로봇에 적용
+- **목표:** 카메라 및 센서 기반의 간단한 자율주행 알고리즘을 햄스터 로봇에 적용
 - **구성:** ROS 2 패키지를 모듈화하여 기능별로 분리
 
 ## 주요 기능
 
 - **카메라 비전**: 실시간 이미지 처리 및 객체 검출
-- **원격 제어**: 키보드 기반 로봇 원격 조종
-- **하드웨어 드라이버**: 햄스터 로봇 기본 제어 인터페이스
+- **자율 주행**: 차선을 인식하여 목표 지점까지 차선을 따라 자동으로 이동
+- **원격 제어**: 키보드 기반 로봇 원격 조종(teleop)
+- **하드웨어 드라이버**: 햄스터 로봇 기본 제어 인터페이스 ([Roboid](https://pypi.org/project/roboid/))
 
 ## 시스템 요구사항
 
 - **OS**: Ubuntu 22.04 LTS
 - **ROS**: ROS 2 Humble Hawksbill
 - **Python**: 3.10+
-- **하드웨어**: 
+- **하드웨어**:
     - [햄스터 S](https://robomation-shop.co.kr/product/detail.html?product_no=679&cate_no=24&display_group=1)
     - [햄스터 AI 카메라](https://robomation-shop.co.kr/product/detail.html?product_no=1003&cate_no=24&display_group=1)
+    - Ubuntu(22.04)가 설치된 컴퓨터
 - **센서**: 카메라, 근접 센서, 가속도 센서, 바닥 센서, 조도 센서
+
+## 로봇 세팅 방법
+
+1. 햄스터 동글을 Ubuntu PC에 꽂는다.
+2. 햄스터 전원을 키고 동글에 가까이 이동시켜면 햄스터와 동글이 연결됨
+3. AI 카메라 동글도 마찬가지로 Ubuntu PC에 꽂는다.
+4. Ubuntu "Select Network"에서 AI 카메라를 선택한다.
+([AI 카메라 연결 방법](https://robomation.net/?p=9974))
+5. 햄스터 로봇에 [마운트 키트](https://robomation-shop.co.kr/product/detail.html?product_no=1365&cate_no=24&display_group=1)를 장착하고 AI 카메라를 키트에 장착한다.
 
 ## 설치 방법
 
@@ -71,7 +79,7 @@ source install/setup.bash
 
 ## 사용 방법
 
-### 1. 통합 시스템 실행 
+### 1. 통합 시스템 실행
 
 ```bash
 # 전체 시스템 (드라이버 + 카메라 + 원격제어)
