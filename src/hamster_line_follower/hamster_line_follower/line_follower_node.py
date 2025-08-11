@@ -59,6 +59,7 @@ class LineFollowerNode(Node):
         self.declare_parameter("max_lane_width", 500)  # 최대 차선 폭 (픽셀)
         self.declare_parameter("show_pixel_grid", True)  # 픽셀 격자 표시
         self.declare_parameter("show_distance_info", True)  # 거리 정보 표시
+        self.declare_parameter("roi_width_ratio", 0.9)  # ROI 폭 비율 (중앙 80%만 사용)
 
         # PID Controller variables
         self.previous_error = 0.0
@@ -94,18 +95,23 @@ class LineFollowerNode(Node):
             self.get_logger().error(f"Image processing error: {str(e)}")
 
     def detect_line(self, image):
-        """Detect line using edge detection and Hough transform"""
+        """엣지 검출과 허프(Hough) 변환을 사용한 차선 검출"""
         height, width = image.shape[:2]
 
-        # Define ROI (Region of Interest) - bottom portion of image
+        # ROI(관심 영역) 정의 - 하단 영역과 중앙 폭
         roi_height = int(height * self.get_parameter("roi_height_ratio").value)
         roi_y = int(height * self.get_parameter("roi_y_offset").value)
 
-        # Create mask for ROI
-        mask = np.zeros((height, width), dtype=np.uint8)
-        mask[roi_y : roi_y + roi_height, :] = 255
+        # ROI 폭 제한 (중앙 부분만)
+        roi_width_ratio = self.get_parameter("roi_width_ratio").value
+        roi_width = int(width * roi_width_ratio)
+        roi_x = (width - roi_width) // 2  # 중앙 정렬
 
-        # Convert to grayscale
+        # ROI 마스크 생성 (세로와 가로 모두 제한)
+        mask = np.zeros((height, width), dtype=np.uint8)
+        mask[roi_y : roi_y + roi_height, roi_x : roi_x + roi_width] = 255
+
+        # 그레이스케일 변환
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # 강화된 색상 필터링 (BGR + HSV 조합으로 흰색 검출)
@@ -114,7 +120,7 @@ class LineFollowerNode(Node):
             # 원본 그레이스케일에 색상 마스크 적용
             gray = cv2.bitwise_and(gray, gray, mask=white_color_mask)
 
-        # Apply ROI mask
+        # ROI 마스크 적용
         masked_gray = cv2.bitwise_and(gray, mask)
 
         # 대비 향상 (회색 도로와 흰색 차선 구분 강화)
@@ -150,11 +156,11 @@ class LineFollowerNode(Node):
         else:
             processed_for_edges = masked_gray
 
-        # Gaussian blur to reduce noise
+        # 가우시안 블러로 노이즈 감소
         kernel_size = self.get_parameter("blur_kernel_size").value
         blurred = cv2.GaussianBlur(processed_for_edges, (kernel_size, kernel_size), 0)
 
-        # Edge detection
+        # 엣지 검출
         canny_low = self.get_parameter("canny_low").value
         canny_high = self.get_parameter("canny_high").value
         edges = cv2.Canny(blurred, canny_low, canny_high)
@@ -179,16 +185,21 @@ class LineFollowerNode(Node):
 
             edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
-        # Choose detection method based on parameter
+        # 파라미터에 따른 검출 방법 선택
         detection_method = self.get_parameter("curve_detection_method").value
 
-        # Create visualization image
+        # 시각화 이미지 생성
         processed_image = image.copy()
+        # ROI 영역 표시 (가로와 세로 모두 제한된 영역)
         cv2.rectangle(
-            processed_image, (0, roi_y), (width, roi_y + roi_height), (0, 255, 0), 2
+            processed_image,
+            (roi_x, roi_y),
+            (roi_x + roi_width, roi_y + roi_height),
+            (0, 255, 0),
+            2,
         )
 
-        # Detect line and get visualization data
+        # 차선 검출 및 시각화 데이터 가져오기
         line_center = None
         valid_lines = []  # 모든 검출 방법에서 사용할 기본값
 
@@ -253,7 +264,7 @@ class LineFollowerNode(Node):
                 for x1, y1, x2, y2 in valid_lines:
                     cv2.line(processed_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-        # Draw image center reference
+        # 이미지 중심 기준선 그리기
         image_center = width // 2
         cv2.line(
             processed_image, (image_center, 0), (image_center, height), (255, 255, 0), 2
@@ -266,7 +277,7 @@ class LineFollowerNode(Node):
         if self.get_parameter("show_distance_info").value:
             self.draw_distance_info(processed_image, width, height, image_center)
 
-        # Draw detected line center if found
+        # 검출된 차선 중심점 그리기
         if line_center is not None:
             cv2.circle(
                 processed_image,
