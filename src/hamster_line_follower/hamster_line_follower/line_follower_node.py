@@ -57,6 +57,8 @@ class LineFollowerNode(Node):
         self.declare_parameter("curve_prediction", True)  # 커브에서 차선 예측
         self.declare_parameter("min_lane_width", 200)  # 최소 차선 폭 (픽셀)
         self.declare_parameter("max_lane_width", 500)  # 최대 차선 폭 (픽셀)
+        self.declare_parameter("show_pixel_grid", True)  # 픽셀 격자 표시
+        self.declare_parameter("show_distance_info", True)  # 거리 정보 표시
 
         # PID Controller variables
         self.previous_error = 0.0
@@ -257,6 +259,13 @@ class LineFollowerNode(Node):
             processed_image, (image_center, 0), (image_center, height), (255, 255, 0), 2
         )
 
+        # 픽셀 및 거리 정보 표시
+        if self.get_parameter("show_pixel_grid").value:
+            self.draw_pixel_grid(processed_image, width, height)
+
+        if self.get_parameter("show_distance_info").value:
+            self.draw_distance_info(processed_image, width, height, image_center)
+
         # Draw detected line center if found
         if line_center is not None:
             cv2.circle(
@@ -265,6 +274,16 @@ class LineFollowerNode(Node):
                 10,
                 (255, 0, 0),
                 -1,
+            )
+            # 중심점 픽셀 좌표 표시
+            cv2.putText(
+                processed_image,
+                f"Center: ({line_center}, {roi_y + roi_height // 2})",
+                (line_center - 80, roi_y + roi_height // 2 - 20),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 255, 255),
+                2,
             )
             cv2.putText(
                 processed_image,
@@ -597,6 +616,56 @@ class LineFollowerNode(Node):
                 color,
                 2,
             )
+
+    def draw_pixel_grid(self, image, width, height):
+        """픽셀 격자와 좌표 표시"""
+        # 100픽셀 간격으로 수직선
+        for x in range(0, width, 100):
+            cv2.line(image, (x, 0), (x, height), (100, 100, 100), 1)
+            if x > 0:  # x=0은 너무 가장자리라 생략
+                cv2.putText(
+                    image,
+                    f"{x}",
+                    (x - 10, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.4,
+                    (200, 200, 200),
+                    1,
+                )
+
+        # 50픽셀 간격으로 수평선 (하단 부분만)
+        for y in range(height // 2, height, 50):
+            cv2.line(image, (0, y), (width, y), (100, 100, 100), 1)
+            cv2.putText(
+                image,
+                f"{y}",
+                (5, y - 5),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.4,
+                (200, 200, 200),
+                1,
+            )
+
+    def draw_distance_info(self, image, width, height, image_center):
+        """화면 중심으로부터의 거리 정보 표시"""
+        # 화면 중심에서 좌우 100픽셀 간격으로 거리 표시
+        for offset in [-200, -100, 100, 200]:
+            x_pos = image_center + offset
+            if 0 <= x_pos < width:
+                # 수직선 그리기
+                cv2.line(
+                    image, (x_pos, height - 100), (x_pos, height), (0, 255, 255), 2
+                )
+                # 거리 텍스트 표시
+                cv2.putText(
+                    image,
+                    f"{offset:+d}px",
+                    (x_pos - 25, height - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 255, 255),
+                    2,
+                )
 
     def draw_prediction_info(self, image, status, details, color):
         """예측 정보를 화면에 표시"""
