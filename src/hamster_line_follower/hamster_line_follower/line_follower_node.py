@@ -454,12 +454,12 @@ class LineFollowerNode(Node):
             slope = (y2 - y1) / (x2 - x1)
             center_x = (x1 + x2) // 2
 
-            # 기울기와 위치로 좌/우 판단
+            # 기울기와 위치로 좌/우 판단 (더 엄격한 조건)
             # 좌측 차선 (음의 기울기)
-            if slope < -0.3 and center_x < image_center * 1.2:
+            if slope < -0.4 and center_x < image_center * 0.9:
                 left_lines.append([x1, y1, x2, y2])
             # 우측 차선 (양의 기울기)
-            elif slope > 0.3 and center_x > image_center * 0.8:
+            elif slope > 0.4 and center_x > image_center * 1.1:
                 right_lines.append([x1, y1, x2, y2])
 
         return left_lines, right_lines
@@ -478,7 +478,7 @@ class LineFollowerNode(Node):
     def get_estimated_lane_width(self):
         """히스토리 기반 추정 차선 폭"""
         if not self.lane_width_history:
-            return 300  # 기본값
+            return 500  # 기본값
         return int(np.median(self.lane_width_history))
 
     def calculate_center_with_prediction(
@@ -718,11 +718,12 @@ class LineFollowerNode(Node):
                         right_center - estimated_width // 2, estimated_width // 4
                     )
         else:
-            # 기존 고정 방식
+            # 기존 방식도 적응적 차선 폭 사용
+            estimated_width = self.get_estimated_lane_width()
             if left_center is not None:
-                return left_center + 150
+                return min(left_center + estimated_width // 2, image_width - 50)
             elif right_center is not None:
-                return right_center - 150
+                return max(right_center - estimated_width // 2, 50)
 
         return None
 
@@ -816,9 +817,9 @@ class LineFollowerNode(Node):
         """좌우 차선을 분리하여 각각 회귀 분석"""
         image_center = image_width // 2
 
-        # 좌우 분리
-        left_mask = x_coords < image_center * 1.2
-        right_mask = x_coords > image_center * 0.8
+        # 좌우 분리 (더 엄격한 조건)
+        left_mask = x_coords < image_center * 0.9
+        right_mask = x_coords > image_center * 1.1
 
         left_x = x_coords[left_mask]
         left_y = y_coords[left_mask]
