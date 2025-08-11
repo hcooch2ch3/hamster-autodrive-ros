@@ -57,6 +57,9 @@ class LineFollowerNode(Node):
         self.declare_parameter("curve_prediction", True)  # 커브에서 차선 예측
         self.declare_parameter("min_lane_width", 200)  # 최소 차선 폭 (픽셀)
         self.declare_parameter("max_lane_width", 500)  # 최대 차선 폭 (픽셀)
+        self.declare_parameter("show_pixel_grid", True)  # 픽셀 격자 표시
+        self.declare_parameter("show_distance_info", True)  # 거리 정보 표시
+        self.declare_parameter("roi_width_ratio", 0.9)  # ROI 폭 비율 (중앙 90%만 사용)
 
         # PID Controller variables
         self.previous_error = 0.0
@@ -92,18 +95,23 @@ class LineFollowerNode(Node):
             self.get_logger().error(f"Image processing error: {str(e)}")
 
     def detect_line(self, image):
-        """Detect line using edge detection and Hough transform"""
+        """엣지 검출과 허프(Hough) 변환을 사용한 차선 검출"""
         height, width = image.shape[:2]
 
-        # Define ROI (Region of Interest) - bottom portion of image
+        # ROI(관심 영역) 정의 - 하단 영역과 중앙 폭
         roi_height = int(height * self.get_parameter("roi_height_ratio").value)
         roi_y = int(height * self.get_parameter("roi_y_offset").value)
 
-        # Create mask for ROI
-        mask = np.zeros((height, width), dtype=np.uint8)
-        mask[roi_y : roi_y + roi_height, :] = 255
+        # ROI 폭 제한 (중앙 부분만)
+        roi_width_ratio = self.get_parameter("roi_width_ratio").value
+        roi_width = int(width * roi_width_ratio)
+        roi_x = (width - roi_width) // 2  # 중앙 정렬
 
-        # Convert to grayscale
+        # ROI 마스크 생성 (세로와 가로 모두 제한)
+        mask = np.zeros((height, width), dtype=np.uint8)
+        mask[roi_y : roi_y + roi_height, roi_x : roi_x + roi_width] = 255
+
+        # 그레이스케일 변환
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # 강화된 색상 필터링 (BGR + HSV 조합으로 흰색 검출)
@@ -112,7 +120,7 @@ class LineFollowerNode(Node):
             # 원본 그레이스케일에 색상 마스크 적용
             gray = cv2.bitwise_and(gray, gray, mask=white_color_mask)
 
-        # Apply ROI mask
+        # ROI 마스크 적용
         masked_gray = cv2.bitwise_and(gray, mask)
 
         # 대비 향상 (회색 도로와 흰색 차선 구분 강화)
@@ -148,11 +156,11 @@ class LineFollowerNode(Node):
         else:
             processed_for_edges = masked_gray
 
-        # Gaussian blur to reduce noise
+        # 가우시안 블러로 노이즈 감소
         kernel_size = self.get_parameter("blur_kernel_size").value
         blurred = cv2.GaussianBlur(processed_for_edges, (kernel_size, kernel_size), 0)
 
-        # Edge detection
+        # 엣지 검출
         canny_low = self.get_parameter("canny_low").value
         canny_high = self.get_parameter("canny_high").value
         edges = cv2.Canny(blurred, canny_low, canny_high)
@@ -177,16 +185,21 @@ class LineFollowerNode(Node):
 
             edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
-        # Choose detection method based on parameter
+        # 파라미터에 따른 검출 방법 선택
         detection_method = self.get_parameter("curve_detection_method").value
 
-        # Create visualization image
+        # 시각화 이미지 생성
         processed_image = image.copy()
+        # ROI 영역 표시 (가로와 세로 모두 제한된 영역)
         cv2.rectangle(
-            processed_image, (0, roi_y), (width, roi_y + roi_height), (0, 255, 0), 2
+            processed_image,
+            (roi_x, roi_y),
+            (roi_x + roi_width, roi_y + roi_height),
+            (0, 255, 0),
+            2,
         )
 
-        # Detect line and get visualization data
+        # 차선 검출 및 시각화 데이터 가져오기
         line_center = None
         valid_lines = []  # 모든 검출 방법에서 사용할 기본값
 
@@ -251,13 +264,20 @@ class LineFollowerNode(Node):
                 for x1, y1, x2, y2 in valid_lines:
                     cv2.line(processed_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-        # Draw image center reference
+        # 이미지 중심 기준선 그리기
         image_center = width // 2
         cv2.line(
             processed_image, (image_center, 0), (image_center, height), (255, 255, 0), 2
         )
 
-        # Draw detected line center if found
+        # 픽셀 및 거리 정보 표시
+        if self.get_parameter("show_pixel_grid").value:
+            self.draw_pixel_grid(processed_image, width, height)
+
+        if self.get_parameter("show_distance_info").value:
+            self.draw_distance_info(processed_image, width, height, image_center)
+
+        # 검출된 차선 중심점 그리기
         if line_center is not None:
             cv2.circle(
                 processed_image,
@@ -265,6 +285,16 @@ class LineFollowerNode(Node):
                 10,
                 (255, 0, 0),
                 -1,
+            )
+            # 중심점 픽셀 좌표 표시
+            cv2.putText(
+                processed_image,
+                f"Center: ({line_center}, {roi_y + roi_height // 2})",
+                (line_center - 80, roi_y + roi_height // 2 - 20),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 255, 255),
+                2,
             )
             cv2.putText(
                 processed_image,
@@ -435,12 +465,12 @@ class LineFollowerNode(Node):
             slope = (y2 - y1) / (x2 - x1)
             center_x = (x1 + x2) // 2
 
-            # 기울기와 위치로 좌/우 판단
+            # 기울기와 위치로 좌/우 판단 (더 엄격한 조건)
             # 좌측 차선 (음의 기울기)
-            if slope < -0.3 and center_x < image_center * 1.2:
+            if slope < -0.4 and center_x < image_center * 0.9:
                 left_lines.append([x1, y1, x2, y2])
             # 우측 차선 (양의 기울기)
-            elif slope > 0.3 and center_x > image_center * 0.8:
+            elif slope > 0.4 and center_x > image_center * 1.1:
                 right_lines.append([x1, y1, x2, y2])
 
         return left_lines, right_lines
@@ -459,7 +489,7 @@ class LineFollowerNode(Node):
     def get_estimated_lane_width(self):
         """히스토리 기반 추정 차선 폭"""
         if not self.lane_width_history:
-            return 300  # 기본값
+            return 500  # 기본값
         return int(np.median(self.lane_width_history))
 
     def calculate_center_with_prediction(
@@ -598,6 +628,56 @@ class LineFollowerNode(Node):
                 2,
             )
 
+    def draw_pixel_grid(self, image, width, height):
+        """픽셀 격자와 좌표 표시"""
+        # 100픽셀 간격으로 수직선
+        for x in range(0, width, 100):
+            cv2.line(image, (x, 0), (x, height), (100, 100, 100), 1)
+            if x > 0:  # x=0은 너무 가장자리라 생략
+                cv2.putText(
+                    image,
+                    f"{x}",
+                    (x - 10, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.4,
+                    (200, 200, 200),
+                    1,
+                )
+
+        # 50픽셀 간격으로 수평선 (하단 부분만)
+        for y in range(height // 2, height, 50):
+            cv2.line(image, (0, y), (width, y), (100, 100, 100), 1)
+            cv2.putText(
+                image,
+                f"{y}",
+                (5, y - 5),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.4,
+                (200, 200, 200),
+                1,
+            )
+
+    def draw_distance_info(self, image, width, height, image_center):
+        """화면 중심으로부터의 거리 정보 표시"""
+        # 화면 중심에서 좌우 100픽셀 간격으로 거리 표시
+        for offset in [-200, -100, 100, 200]:
+            x_pos = image_center + offset
+            if 0 <= x_pos < width:
+                # 수직선 그리기
+                cv2.line(
+                    image, (x_pos, height - 100), (x_pos, height), (0, 255, 255), 2
+                )
+                # 거리 텍스트 표시
+                cv2.putText(
+                    image,
+                    f"{offset:+d}px",
+                    (x_pos - 25, height - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 255, 255),
+                    2,
+                )
+
     def draw_prediction_info(self, image, status, details, color):
         """예측 정보를 화면에 표시"""
         # 상태 표시
@@ -649,11 +729,12 @@ class LineFollowerNode(Node):
                         right_center - estimated_width // 2, estimated_width // 4
                     )
         else:
-            # 기존 고정 방식
+            # 기존 방식도 적응적 차선 폭 사용
+            estimated_width = self.get_estimated_lane_width()
             if left_center is not None:
-                return left_center + 150
+                return min(left_center + estimated_width // 2, image_width - 50)
             elif right_center is not None:
-                return right_center - 150
+                return max(right_center - estimated_width // 2, 50)
 
         return None
 
@@ -747,9 +828,9 @@ class LineFollowerNode(Node):
         """좌우 차선을 분리하여 각각 회귀 분석"""
         image_center = image_width // 2
 
-        # 좌우 분리
-        left_mask = x_coords < image_center * 1.2
-        right_mask = x_coords > image_center * 0.8
+        # 좌우 분리 (더 엄격한 조건)
+        left_mask = x_coords < image_center * 0.9
+        right_mask = x_coords > image_center * 1.1
 
         left_x = x_coords[left_mask]
         left_y = y_coords[left_mask]
