@@ -59,7 +59,7 @@ class LineFollowerNode(Node):
         self.declare_parameter("max_lane_width", 500)  # 최대 차선 폭 (픽셀)
         self.declare_parameter("show_pixel_grid", True)  # 픽셀 격자 표시
         self.declare_parameter("show_distance_info", True)  # 거리 정보 표시
-        self.declare_parameter("roi_width_ratio", 0.9)  # ROI 폭 비율 (중앙 80%만 사용)
+        self.declare_parameter("roi_width_ratio", 0.9)  # ROI 폭 비율 (중앙 90%만 사용)
 
         # PID Controller variables
         self.previous_error = 0.0
