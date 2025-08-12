@@ -1,0 +1,10 @@
+# Python dependencies for hamster_autodrive_ros
+# Computer Vision
+opencv-python>=4.5.0
+numpy>=1.20.0
+
+# Hamster Robot Control
+roboid>=1.0.0
+
+# Note: ROS 2 packages (rclpy, sensor_msgs, etc.) are managed by rosdep
+# Install ROS dependencies with: rosdep install --from-paths src -i -r -y
