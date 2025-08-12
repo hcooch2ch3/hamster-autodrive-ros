@@ -1,4 +1,3 @@
-# Hamster Autodrive ROS
 <img src="media/HAMSTER.PNG" alt="Hamster Robot" width="100%">
 
 ## 개요
@@ -66,7 +65,12 @@ git clone https://github.com/hcooch2ch3/hamster-autodrive-ros.git
 
 ```bash
 cd ~/hamster_ws
+
+# ROS 2 패키지 의존성 설치
 rosdep install --from-paths src --ignore-src -r -y
+
+# Python 패키지 의존성 설치
+pip install -r src/hamster-autodrive-ros/requirements.txt
 ```
 
 ### 4. 빌드
