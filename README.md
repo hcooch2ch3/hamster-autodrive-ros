@@ -1,3 +1,9 @@
+![ROS 2 Humble](https://img.shields.io/badge/ROS%202-Humble-blue)
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Platform](https://img.shields.io/badge/platform-ubuntu%2022.04-orange)
+![GitHub release](https://img.shields.io/github/release/hcooch2ch3/hamster-autodrive-ros.svg)
+
 <img src="media/HAMSTER.PNG" alt="Hamster Robot" width="100%">
 
 ## 개요
