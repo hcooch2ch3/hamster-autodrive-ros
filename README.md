@@ -1,11 +1,19 @@
+![ROS 2 Humble](https://img.shields.io/badge/ROS%202-Humble-blue)
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Platform](https://img.shields.io/badge/platform-ubuntu%2022.04-orange)
+![GitHub release](https://img.shields.io/github/release/hcooch2ch3/hamster-autodrive-ros.svg)
+
 <img src="media/HAMSTER.PNG" alt="Hamster Robot" width="100%">
+
+<img src="media/straight15.gif" alt="Hamster Robot" width="100%">
 
 ## 개요
 
 이 프로젝트는 햄스터 S 로봇을 이용하여 자율주행 기능을 구현하기 위한 ROS 2 패키지입니다. 차선 유지, 장애물 회피, 등의 기능을 제공합니다.
 
 - **대상:** ROS를 배우고 싶은 학생, 교육자, 로봇 입문자
-- **목표:** 카메라 및 센서 기반의 간단한 자율주행 알고리즘을 햄스터 로봇에 적용
+- **목표:** 카메라 및 센서 기반의 자율주행 알고리즘을 햄스터 로봇에 적용
 - **구성:** ROS 2 패키지를 모듈화하여 기능별로 분리
 
 ## 주요 기능
@@ -28,12 +36,12 @@
 
 ## 로봇 세팅 방법
 
-1. 햄스터 동글을 Ubuntu PC에 꽂는다.
-2. 햄스터 전원을 키고 동글에 가까이 이동시키면 햄스터와 동글이 연결됨
-3. AI 카메라 동글도 마찬가지로 Ubuntu PC에 꽂는다.
-4. Ubuntu "Select Network"에서 AI 카메라를 선택한다.
+1. 햄스터 동글을 Ubuntu PC에 연결합니다.
+2. 햄스터 전원을 키고 동글에 가까이 이동시키면 햄스터와 동글이 페어링됩니다.
+3. AI 카메라 동글도 마찬가지로 Ubuntu PC에 연결합니다.
+4. Ubuntu "Select Network"에서 AI 카메라를 선택합니다.
 ([AI 카메라 연결 방법](https://robomation.net/?p=9974))
-5. 햄스터 로봇에 [마운트 키트](https://robomation-shop.co.kr/product/detail.html?product_no=1365&cate_no=24&display_group=1)를 장착하고 AI 카메라를 키트에 장착한다.
+5. 햄스터 로봇에 [마운트 키트](https://robomation-shop.co.kr/product/detail.html?product_no=1365&cate_no=24&display_group=1)를 장착하고 AI 카메라를 그 위에 장착합니다.
 
 ## 설치 방법
 
@@ -131,13 +139,17 @@ ros2 launch hamster_camera camera.launch.py enable_object_following:=true
 src/
 ├── hamster_bringup/           # 햄스터 로봇 기본 드라이버
 ├── hamster_camera/            # 카메라 비전 처리
-└── hamster_teleop/            # 원격 제어
+├── hamster_line_follower/     # 차선 검출 기반 자율주행
+├── hamster_msgs/              # 커스텀 메시지 정의
+└── hamster_teleop/            # 키보드로 원격 제어
 ```
 
 ### 패키지 설명
 
 - **hamster_bringup**: 햄스터 로봇의 기본 하드웨어 드라이버와 센서 인터페이스
 - **hamster_camera**: IP 카메라 연결, 이미지 처리, 객체 검출 기능
+- **hamster_line_follower**: 카메라 기반 차선 검출 및 자율주행 알고리즘
+- **hamster_msgs**: 센서 데이터, 객체 검출 등 커스텀 ROS 메시지 타입 정의
 - **hamster_teleop**: 키보드를 이용한 원격 조종 기능
 
 ## 설정
