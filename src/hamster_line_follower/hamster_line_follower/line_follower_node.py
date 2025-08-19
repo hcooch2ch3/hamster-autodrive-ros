@@ -13,10 +13,10 @@ class LineFollowerNode(Node):
     def __init__(self):
         super().__init__("line_follower_node")
 
-        # CV Bridge for image conversion
+        # 이미지 변환을 위한 CV Bridge
         self.bridge = CvBridge()
 
-        # Publishers and Subscribers
+        # Publisher & Subscriber
         self.cmd_vel_publisher = self.create_publisher(Twist, "/cmd_vel", 10)
         self.processed_image_publisher = self.create_publisher(
             Image, "/line_follower/processed_image", 10
@@ -25,11 +25,11 @@ class LineFollowerNode(Node):
             Image, "/camera/image_raw", self.image_callback, 10
         )
 
-        # Parameters
+        # 매개변수
         self.declare_parameter("linear_speed", 0.2)
         self.declare_parameter("angular_gain", 0.005)
-        self.declare_parameter("roi_height_ratio", 0.5)  # Bottom 50% of image
-        self.declare_parameter("roi_y_offset", 0.5)  # Start from 50% down (맨 하단 50%)
+        self.declare_parameter("roi_height_ratio", 0.5)  # 이미지 하단 50%
+        self.declare_parameter("roi_y_offset", 0.5)  # 50% 지점부터 시작 (맨 하단 50%)
         self.declare_parameter("blur_kernel_size", 7)  # 약간 더 크게
         self.declare_parameter("canny_low", 40)  # 더 낮은 임계값으로 약한 edge도 검출
         self.declare_parameter("canny_high", 120)  # 비율 유지하면서 낮춤
@@ -61,7 +61,7 @@ class LineFollowerNode(Node):
         self.declare_parameter("show_distance_info", True)  # 거리 정보 표시
         self.declare_parameter("roi_width_ratio", 0.9)  # ROI 폭 비율 (중앙 90%만 사용)
 
-        # PID Controller variables
+        # PID 제어기 변수
         self.previous_error = 0.0
         self.integral_error = 0.0
         self.declare_parameter("kp", 0.8)
@@ -76,16 +76,16 @@ class LineFollowerNode(Node):
 
     def image_callback(self, msg):
         try:
-            # Convert ROS Image to OpenCV
+            # ROS 이미지를 OpenCV로 변환
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
 
-            # Process image to detect line
+            # 선 검출을 위한 이미지 처리
             line_center, processed_image = self.detect_line(cv_image)
 
-            # Publish processed image for visualization
+            # 시각화를 위한 처리된 이미지 발행
             self.publish_processed_image(processed_image)
 
-            # Generate control command
+            # 제어 명령 생성
             if line_center is not None:
                 self.follow_line(line_center, cv_image.shape[1])
             else:
@@ -205,7 +205,7 @@ class LineFollowerNode(Node):
 
         if detection_method == "moment":
             line_center = self.detect_line_moment_based(edges, roi_y, roi_height)
-            # Draw moment-based visualization - center line as vertical red line
+            # 모멘트 기반 시각화 - 중심선을 빨간색 수직선으로 표시
             if line_center is not None:
                 cv2.line(
                     processed_image,
@@ -214,23 +214,23 @@ class LineFollowerNode(Node):
                     (0, 0, 255),
                     3,
                 )
-                # Also draw the edge pixels in red for debugging
+                # 디버깅을 위해 엣지 픽셀을 빨간색으로 표시
                 roi_edges = edges[roi_y : roi_y + roi_height, :]
                 red_overlay = processed_image[roi_y : roi_y + roi_height, :].copy()
                 red_overlay[:, :, 0] = np.maximum(
                     red_overlay[:, :, 0], roi_edges
-                )  # Add red channel
+                )  # 빨간색 채널 추가
                 processed_image[roi_y : roi_y + roi_height, :] = red_overlay
         elif detection_method == "contour":
             line_center, largest_contour = self.detect_line_contour_based(edges)
-            # Draw the detected contour in red
+            # 검출된 윤곽선을 빨간색으로 표시
             if largest_contour is not None:
                 cv2.drawContours(processed_image, [largest_contour], -1, (0, 0, 255), 3)
         elif detection_method == "regression":
             line_center, regression_lines = self.detect_line_regression_based(
                 edges, roi_y, roi_height, width
             )
-            # Draw regression lines
+            # 회귀 직선 그리기
             if regression_lines:
                 for line_points in regression_lines:
                     if len(line_points) >= 2:
@@ -245,7 +245,7 @@ class LineFollowerNode(Node):
             line_center, valid_lines = self.detect_line_hough_based(
                 edges, roi_y, roi_height
             )
-            # Draw the detected lines with left/right color coding
+            # 좌우 색상 구분으로 검출된 선 그리기
             if valid_lines and self.get_parameter("separate_lanes").value:
                 left_lines, right_lines = self.separate_left_right_lines(
                     valid_lines, width
@@ -925,7 +925,7 @@ class LineFollowerNode(Node):
 
     def detect_line_contour_based(self, edges):
         """컨투어 기반 중심선 검출 - 곡선에 적합"""
-        # Find contours
+        # 윤곽선 찾기
         contours, _ = cv2.findContours(
             edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
@@ -933,14 +933,14 @@ class LineFollowerNode(Node):
         if not contours:
             return None, None
 
-        # Get largest contour (main line)
+        # 가장 큰 윤곽선 가져오기 (주 라인)
         largest_contour = max(contours, key=cv2.contourArea)
 
         # 최소 면적 체크
         if cv2.contourArea(largest_contour) < 50:
             return None, None
 
-        # Calculate moments to find centroid
+        # 중심점을 찾기 위한 모멘트 계산
         M = cv2.moments(largest_contour)
         if M["m00"] != 0:
             cx = int(M["m10"] / M["m00"])
@@ -964,7 +964,7 @@ class LineFollowerNode(Node):
         if lines is None:
             return None, []
 
-        # Filter and average lines
+        # 선 필터링 및 평균화
         valid_lines = []
         for line in lines:
             x1, y1, x2, y2 = line[0]
@@ -1033,29 +1033,29 @@ class LineFollowerNode(Node):
         return merged_lines
 
     def follow_line(self, line_center, image_width):
-        """Generate control commands to follow the detected line"""
+        """검출된 선을 따라가기 위한 제어 명령 생성"""
         image_center = image_width // 2
         error = line_center - image_center
 
-        # PID Controller
+        # PID 제어기
         kp = self.get_parameter("kp").value
         ki = self.get_parameter("ki").value
         kd = self.get_parameter("kd").value
 
-        # Calculate PID terms
+        # PID 항목 계산
         proportional = error
         self.integral_error += error
         derivative = error - self.previous_error
 
-        # PID output
+        # PID 출력
         pid_output = kp * proportional + ki * self.integral_error + kd * derivative
 
-        # Create control command
+        # 제어 명령 생성
         cmd = Twist()
         cmd.linear.x = self.get_parameter("linear_speed").value
         cmd.angular.z = -pid_output * self.get_parameter("angular_gain").value
 
-        # Limit angular velocity
+        # 각속도 제한
         max_angular = 1.0
         cmd.angular.z = max(-max_angular, min(max_angular, cmd.angular.z))
 
@@ -1065,10 +1065,10 @@ class LineFollowerNode(Node):
             f"angular.z={cmd.angular.z:.3f}, error={error}"
         )
 
-        # Publish command
+        # 명령 발행
         self.cmd_vel_publisher.publish(cmd)
 
-        # Update previous error
+        # 이전 오차 업데이트
         self.previous_error = error
 
         self.get_logger().info(
@@ -1076,7 +1076,7 @@ class LineFollowerNode(Node):
         )
 
     def stop_robot(self):
-        """Stop the robot when no line is detected"""
+        """선이 검출되지 않을 때 로봇 정지"""
         cmd = Twist()
         cmd.linear.x = 0.0
         cmd.angular.z = 0.0
@@ -1084,7 +1084,7 @@ class LineFollowerNode(Node):
         self.get_logger().warn("🛑 STOP: No line detected - stopping robot")
 
     def publish_processed_image(self, cv_image):
-        """Publish processed image for visualization"""
+        """시각화를 위한 처리된 이미지 발행"""
         try:
             ros_image = self.bridge.cv2_to_imgmsg(cv_image, "bgr8")
             ros_image.header.stamp = self.get_clock().now().to_msg()
