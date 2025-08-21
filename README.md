@@ -10,7 +10,7 @@
 
 <img src="media/curve.gif" alt="Hamster Robot" width="100%">
 
-[![Watch the video](media/thumbnail.jpg)](https://youtu.be/9UTrqN8X3jg)
+[![영상 보기](media/thumbnail.jpg)](https://youtu.be/9UTrqN8X3jg)
 
 ## 개요
 
