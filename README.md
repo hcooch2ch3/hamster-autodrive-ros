@@ -10,6 +10,8 @@
 
 <img src="media/curve.gif" alt="Hamster Robot" width="100%">
 
+[![영상 보기](media/thumbnail.jpg)](https://youtu.be/9UTrqN8X3jg)
+
 ## 개요
 
 이 프로젝트는 햄스터 S 로봇을 이용하여 자율주행 기능을 구현하기 위한 ROS 2 패키지입니다. 차선 유지, 장애물 회피, 등의 기능을 제공합니다.
@@ -31,9 +33,9 @@
 - **ROS**: ROS 2 Humble Hawksbill
 - **Python**: 3.10+
 - **하드웨어**:
-    - [햄스터 S](https://robomation-shop.co.kr/product/detail.html?product_no=679&cate_no=24&display_group=1)
-    - [햄스터 AI 카메라](https://robomation-shop.co.kr/product/detail.html?product_no=1003&cate_no=24&display_group=1)
-    - Ubuntu(22.04)가 설치된 컴퓨터
+  - [햄스터 S](https://robomation-shop.co.kr/product/detail.html?product_no=679&cate_no=24&display_group=1)
+  - [햄스터 AI 카메라](https://robomation-shop.co.kr/product/detail.html?product_no=1003&cate_no=24&display_group=1)
+  - Ubuntu(22.04)가 설치된 컴퓨터
 - **센서**: 카메라, 근접 센서, 가속도 센서, 바닥 센서, 조도 센서
 
 ## 로봇 세팅 방법
@@ -42,7 +44,7 @@
 2. 햄스터 전원을 키고 동글에 가까이 이동시키면 햄스터와 동글이 페어링됩니다.
 3. AI 카메라 동글도 마찬가지로 Ubuntu PC에 연결합니다.
 4. Ubuntu "Select Network"에서 AI 카메라를 선택합니다.
-([AI 카메라 연결 방법](https://robomation.net/?p=9974))
+   ([AI 카메라 연결 방법](https://robomation.net/?p=9974))
 5. 햄스터 로봇에 [마운트 키트](https://robomation-shop.co.kr/product/detail.html?product_no=1365&cate_no=24&display_group=1)를 장착하고 AI 카메라를 그 위에 장착합니다.
 
 ## 설치 방법
@@ -165,6 +167,7 @@ self.camera_url = "http://192.168.66.1:9527/videostream.cgi?loginuse=admin&login
 ```
 
 이미지 확인 방법
+
 ```bash
 # RQT로 이미지 확인
 ros2 run rqt_image_view rqt_image_view
@@ -254,15 +257,18 @@ rqt
 ### 일반적인 조정 가이드
 
 **점선이 잘 안 보일 때:**
+
 - `brightness_threshold` 낮추기 (180 → 160)
 - `min_line_length` 낮추기 (8 → 5)
 - `max_line_gap` 낮추기 (15 → 10)
 
 **너무 많은 노이즈가 검출될 때:**
+
 - `brightness_threshold` 높이기 (200 → 220)
 - `canny_low` 높이기 (40 → 50)
 
 **카메라가 수평에 가까울 때:**
+
 - `roi_height_ratio` 작게 (0.15 이하)
 - `roi_y_offset` 크게 (0.85 이상)
 
